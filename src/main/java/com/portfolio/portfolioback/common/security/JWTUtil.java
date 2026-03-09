@@ -62,7 +62,7 @@ public class JWTUtil {
     // Bearer : JWT 혹은 Oauth에 대한 토큰을 사용
     // claim은 payload에 해당하는 정보
     //public String createJwt(String username, String role, Long expiredMs) {
-    public String createJwt(Users user, String role, Long expiredMs) {
+    public String createAccessJwt(Users user, String role, Long expiredMs) {
         log.info("createJwt  call");
         return Jwts.builder()
                 .claim("userId", user.getUserId()) // userId (PK)

@@ -1,6 +1,6 @@
 package com.portfolio.portfolioback.common.enumtype;
 
 public enum UserRole {
-    ADMIN,
-    USER;
+    ROLE_ADMIN,
+    ROLE_USER;
 }

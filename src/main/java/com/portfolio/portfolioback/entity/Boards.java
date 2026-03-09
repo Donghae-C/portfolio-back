@@ -1,6 +1,5 @@
 package com.portfolio.portfolioback.entity;
 
-import com.portfolio.portfolioback.common.enumtype.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -14,32 +13,28 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Users {
+public class Boards {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long boardId;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users users;
 
+    @Column(length = 100, nullable = false)
+    private String title;
+
+    @Lob
     @Column(nullable = false)
-    private String userName;
-
-    @Column(nullable = false)
-    private String provider;
-
-    @Column(nullable = false)
-    private String providerId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role = UserRole.ROLE_USER;
+    private String content;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(columnDefinition = "boolean default false")
+    private boolean isPrivate =  false;
 }

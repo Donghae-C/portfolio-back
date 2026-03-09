@@ -2,6 +2,7 @@ package com.portfolio.portfolioback.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.portfolioback.common.filter.JWTFilter;
+import com.portfolio.portfolioback.common.oauth.CustomOidcUserService;
 import com.portfolio.portfolioback.common.security.JWTUtil;
 import com.portfolio.portfolioback.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -32,6 +32,7 @@ public class SecurityConfig {
 
     //AuthenticationManager가 인자로 받을 AuthenticationConfiguraion 객체 생성자 주입
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final CustomOidcUserService customOidcUserService;
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
     private final UserService userService;
@@ -99,16 +100,17 @@ public class SecurityConfig {
 
 
         http.oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("http://localhost:3000", true));
-
-        /*
-                // 로그인 성공 후 사용자 정보 처리 서비스
-                // 구글에서 받은 사용자 정보를 DB 사용자와 연결하는 역할
 
                 .userInfoEndpoint(userInfo -> userInfo
-                        .userService(customOAuth2UserService)
+                        .oidcUserService(customOidcUserService)
                 )
-
+                .successHandler((request, response, authentication) -> {
+                    log.info("==== 로그인 성공 ====");
+                    log.info("principal class = {}", authentication.getPrincipal().getClass().getName());
+                    response.sendRedirect("http://localhost:3000");
+                })
+        );
+        /*
                 // 로그인 성공 시 JWT 발급 처리
                 .successHandler(oAuth2LoginSuccessHandler)
 
