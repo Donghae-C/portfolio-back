@@ -3,6 +3,7 @@ package com.portfolio.portfolioback.controller;
 import com.portfolio.portfolioback.common.enumtype.UserRole;
 import com.portfolio.portfolioback.common.security.CustomUserDetails;
 import com.portfolio.portfolioback.common.util.CookieUtil;
+import com.portfolio.portfolioback.dto.LoginCode;
 import com.portfolio.portfolioback.service.RefreshTokenService;
 import com.portfolio.portfolioback.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,10 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -67,5 +65,14 @@ public class UserController {
         refreshTokenService.logout(userId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @PostMapping("/auth/exchange")
+    public ResponseEntity<?> exchangeToken(@RequestBody LoginCode code){
+        log.info("exchangeToken");
+        log.info("code: {}", code.getCode());
+        Map<String, String> tokens = refreshTokenService.issueTokensByCode(code.getCode());
+        return ResponseEntity.status(HttpStatus.OK).body(tokens);
+    }
+
 
 }
