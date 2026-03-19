@@ -1,4 +1,4 @@
-package com.portfolio.portfolioback.common.security;
+package com.portfolio.portfolioback.common.util;
 
 import com.portfolio.portfolioback.entity.Users;
 import io.jsonwebtoken.Jwts;
@@ -38,7 +38,7 @@ public class JWTUtil {
     // username 검증
     public String getUsername(String token) {
         log.info("getUsername(String token) called");
-        String result = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("username", String.class);
+        String result = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userName", String.class);
         log.info("getUsername(String token) result = {}", result);
         return result;
     }
@@ -62,11 +62,12 @@ public class JWTUtil {
     // Bearer : JWT 혹은 Oauth에 대한 토큰을 사용
     // claim은 payload에 해당하는 정보
     //public String createJwt(String username, String role, Long expiredMs) {
-    public String createJwt(Users user, String role, Long expiredMs) {
+    public String createAccessJwt(Users user, String role, Long expiredMs) {
         log.info("createJwt  call");
         return Jwts.builder()
                 .claim("userId", user.getUserId()) // userId (PK)
                 .claim("role", role) // admin or user
+                .claim("userName", user.getUserName())
                 .issuedAt(new Date(System.currentTimeMillis())) // 현재 로그인 된 시간
                 .expiration(new Date(System.currentTimeMillis() + expiredMs)) // 만료시간
                 .signWith(secretKey)
