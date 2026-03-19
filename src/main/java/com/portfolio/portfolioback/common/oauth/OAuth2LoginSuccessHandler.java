@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.UUID;
 
 //이 클래스에서 JWT를 생성 및 응답바디나 쿠키에 내려보냄
 @Component
@@ -33,7 +34,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         CustomOidcUser oidcUser = (CustomOidcUser) authentication.getPrincipal();
 
-        Long userId =  oidcUser.getUserId();
+        Long userId = oidcUser.getUserId();
+        String code = UUID.randomUUID().toString();
+
+
+        refreshTokenService.saveLoginCode(code, userId);
+
+
+        /*Long userId =  oidcUser.getUserId();
         String role = oidcUser.getRole().name();
 
         log.info("userId = {}, role = {}", userId, role);
@@ -61,7 +69,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
 
         log.info("==== 로그인 성공 ====");
-        log.info("principal class = {}", authentication.getPrincipal().getClass().getName());
-        response.sendRedirect(frontUrl);
+        log.info("principal class = {}", authentication.getPrincipal().getClass().getName());*/
+        response.sendRedirect(frontUrl + "/api/auth/login?code=" + code);
     }
 }

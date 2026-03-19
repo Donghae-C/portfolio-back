@@ -1,11 +1,17 @@
 package com.portfolio.portfolioback.service;
 
 import com.portfolio.portfolioback.common.enumtype.UserRole;
+import com.portfolio.portfolioback.common.exception.ErrorCode;
+import com.portfolio.portfolioback.common.exception.MyPortFolioException;
+import com.portfolio.portfolioback.common.security.RefreshTokenGenerator;
 import com.portfolio.portfolioback.common.util.JWTUtil;
 import com.portfolio.portfolioback.common.util.TokenHashUtil;
+import com.portfolio.portfolioback.entity.LoginCodes;
 import com.portfolio.portfolioback.entity.RefreshTokens;
 import com.portfolio.portfolioback.entity.Users;
+import com.portfolio.portfolioback.repository.LoginCodeRepository;
 import com.portfolio.portfolioback.repository.RefreshTokenRepository;
+import com.portfolio.portfolioback.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -16,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +31,9 @@ import java.time.LocalDateTime;
 @Transactional
 public class RefreshTokenServiceImpl implements RefreshTokenService{
     private final RefreshTokenRepository refreshTokenRepository;
+    private final LoginCodeRepository loginCodeRepository;
     private final JWTUtil jWTUtil;
+    private final UserRepository userRepository;
 
     @Override
     public RefreshTokens saveToken(Users user, String refreshToken) {
@@ -90,5 +100,37 @@ public class RefreshTokenServiceImpl implements RefreshTokenService{
         String accessJwt = jWTUtil.createAccessJwt(user, role.toString(), 1000 * 60 * 10L);
 
         return accessJwt;
+    }
+
+    @Override
+    public Map<String, String> issueTokensByCode(String code) {
+        LoginCodes codes = loginCodeRepository.findByCode(code).orElseThrow(() -> new MyPortFolioException(ErrorCode.NOT_AUTH));
+        if(codes.isExpired()){
+            loginCodeRepository.delete(codes);
+            return null;
+        }
+        Users user = userRepository.findById(codes.getUserId()).orElseThrow(() -> new MyPortFolioException(ErrorCode.USER_NOTFOUND));
+        String accessToken = jWTUtil.createAccessJwt(user, user.getRole().name(), 1000 * 60 * 10L);
+        String refreshToken = RefreshTokenGenerator.generate();
+        String hashedRefreshToken = TokenHashUtil.sha256(refreshToken);
+        saveToken(user, accessToken);
+
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("refreshToken", hashedRefreshToken);
+        tokens.put("accessToken", accessToken);
+
+        loginCodeRepository.delete(codes);
+
+        return tokens;
+    }
+
+    @Override
+    public void saveLoginCode(String code, Long userId) {
+        LoginCodes loginCodes = LoginCodes.builder().code(code).userId(userId).build();
+        try {
+            loginCodeRepository.save(loginCodes);
+        } catch (Exception e) {
+            throw new MyPortFolioException(ErrorCode.DB_ERROR);
+        }
     }
 }
