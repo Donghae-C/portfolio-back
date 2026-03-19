@@ -2,6 +2,8 @@ package com.portfolio.portfolioback.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @ToString
@@ -14,4 +16,5 @@ public class ReplyOutboundDTO {
     private String userName;
     private Long boardId;
     private String content;
+    private LocalDateTime createdAt;
 }

@@ -2,7 +2,7 @@ package com.portfolio.portfolioback.common.filter;
 
 import com.portfolio.portfolioback.common.enumtype.UserRole;
 import com.portfolio.portfolioback.common.security.CustomUserDetails;
-import com.portfolio.portfolioback.common.security.JWTUtil;
+import com.portfolio.portfolioback.common.util.JWTUtil;
 import com.portfolio.portfolioback.entity.Users;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,6 +25,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        /*
         // request에서 Authorization 헤더 찾기
         String authorization= request.getHeader("Authorization");
 
@@ -50,8 +51,8 @@ public class JWTFilter extends OncePerRequestFilter {
             // 조건이 해당되면 메소드 종료 (필수)
             return;
         }
-/*
 
+         */
         String token = null;
         // 2. 쿠키 바구니에서 "Authorization" 찾기
         Cookie[] cookies = request.getCookies();
@@ -72,7 +73,7 @@ public class JWTFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
+        System.out.println("token = " + token);
         System.out.println("authorization now");
 
         if (jwtUtil.isExpired(token)) {
@@ -80,16 +81,18 @@ public class JWTFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-*/
+
 
         // 토큰에서 username과 role 획득
         Long userId = jwtUtil.getUserId(token);
         String role = jwtUtil.getRole(token);
+        String userName = jwtUtil.getUsername(token);
 
         // userEntity를 생성하여 값 set
         Users user = Users.builder()
                 .userId(userId)
                 .role(UserRole.valueOf(role))
+                .userName(userName)
                 .build();
 
         // UserDetails에 유저 정보 객체 담기

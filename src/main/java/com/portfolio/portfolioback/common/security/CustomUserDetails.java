@@ -21,7 +21,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(()->"ROLE_" + user.getRole().toString());   // security 규칙인 ROLE_ 붙여줌
+        authorities.add(()->user.getRole().toString());   // security 규칙인 ROLE_ 붙여줌
         return authorities;
     }
 

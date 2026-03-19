@@ -13,5 +13,5 @@ public class BoardInboundDTO {
     private Long userId;
     private String title;
     private String content;
-    private boolean isPrivate;
+    //private boolean isPrivate;
 }

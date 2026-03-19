@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class BoardOutboundDTO {
     private Long boardId;
     private Long userId;
+    private String userName;
     private String title;
     private String content;
     private LocalDateTime createdAt;

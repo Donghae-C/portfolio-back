@@ -1,4 +1,4 @@
-package com.portfolio.portfolioback.common.security;
+package com.portfolio.portfolioback.common.util;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

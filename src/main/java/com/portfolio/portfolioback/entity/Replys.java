@@ -2,6 +2,9 @@ package com.portfolio.portfolioback.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -25,4 +28,8 @@ public class Replys {
 
     @Column(length = 250, nullable = false)
     private String content;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 }

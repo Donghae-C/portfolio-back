@@ -3,7 +3,11 @@ package com.portfolio.portfolioback.common.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.portfolioback.common.filter.JWTFilter;
 import com.portfolio.portfolioback.common.oauth.CustomOidcUserService;
-import com.portfolio.portfolioback.common.security.JWTUtil;
+import com.portfolio.portfolioback.common.oauth.OAuth2LoginSuccessHandler;
+import com.portfolio.portfolioback.common.security.CustomAccessDeniedHandler;
+import com.portfolio.portfolioback.common.security.CustomAuthenticationEntryPoint;
+import com.portfolio.portfolioback.common.security.CustomAuthorizationRequestResolver;
+import com.portfolio.portfolioback.common.util.JWTUtil;
 import com.portfolio.portfolioback.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +19,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -33,7 +38,10 @@ public class SecurityConfig {
     //AuthenticationManager가 인자로 받을 AuthenticationConfiguraion 객체 생성자 주입
     private final AuthenticationConfiguration authenticationConfiguration;
     private final CustomOidcUserService customOidcUserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     private final JWTUtil jwtUtil;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final ObjectMapper objectMapper;
     private final UserService userService;
 
@@ -49,7 +57,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
+        CustomAuthorizationRequestResolver customResolver = new CustomAuthorizationRequestResolver(clientRegistrationRepository);
+
         // csrf disable (csrf공격을 방어하기 위한 토큰 주고 받는 부분을 비활성화)
         http.csrf((auth) -> auth.disable());
         // http basic 인증 방식 disable
@@ -61,10 +71,17 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         http.sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        http.authorizeHttpRequests(auth -> auth.requestMatchers("/api/user/auth/me", "/api/board/**").hasAnyRole("USER", "ADMIN")
+                .anyRequest().permitAll());
 
         // 모두 허용 (임시)
-        http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        //http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+
+        http.exceptionHandling(exception -> exception
+                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                .accessDeniedHandler(customAccessDeniedHandler));
 
         // 경로별 인가 작업 (필요한 거 추가!)
         /*
@@ -100,20 +117,13 @@ public class SecurityConfig {
 
 
         http.oauth2Login(oauth2 -> oauth2
-
+                .authorizationEndpoint(authorization -> authorization.authorizationRequestResolver(customResolver))
                 .userInfoEndpoint(userInfo -> userInfo
                         .oidcUserService(customOidcUserService)
                 )
-                .successHandler((request, response, authentication) -> {
-                    log.info("==== 로그인 성공 ====");
-                    log.info("principal class = {}", authentication.getPrincipal().getClass().getName());
-                    response.sendRedirect("http://localhost:3000");
-                })
+                .successHandler(oAuth2LoginSuccessHandler)
         );
         /*
-                // 로그인 성공 시 JWT 발급 처리
-                .successHandler(oAuth2LoginSuccessHandler)
-
                 // 로그인 실패 시 처리
                 .failureHandler(oAuth2LoginFailureHandler)
         );
@@ -130,7 +140,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://192.168.0.19:5173", "ws://192.168.0.19:5173", "https://santa-sns.o-r.kr/", "http://santa-sns.o-r.kr/"));
+        configuration.setAllowedOrigins(List.of("http://localthost:3000", "https://dh-portfolio-delta.vercel.app/"));
 
         configuration.setAllowedMethods(Collections.singletonList("*"));
 
