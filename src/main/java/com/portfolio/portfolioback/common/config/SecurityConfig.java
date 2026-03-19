@@ -140,7 +140,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localthost:3000", "https://dh-portfolio-delta.vercel.app/"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://dh-portfolio-delta.vercel.app"));
 
         configuration.setAllowedMethods(Collections.singletonList("*"));
 
