@@ -6,6 +6,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -26,7 +28,7 @@ public class Boards {
     private String title;
 
     @Lob
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT",nullable = false)
     private String content;
 
     @CreationTimestamp
@@ -37,4 +39,11 @@ public class Boards {
 
     @Column(columnDefinition = "boolean default false")
     private boolean isPrivate =  false;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Replys> replies = new ArrayList<>();
+
+    public int getReplyCount() {
+        return replies.size();
+    }
 }

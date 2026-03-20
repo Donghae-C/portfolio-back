@@ -90,7 +90,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     private BoardOutboundDTO toDTO(Boards boards) {
-        Users user = userRepository.findById(boards.getUsers().getUserId()).orElse(null);
+        Users user = userRepository.findById(boards.getUsers().getUserId()).orElseThrow(()-> new MyPortFolioException(ErrorCode.USER_NOTFOUND));
         BoardOutboundDTO boardOutboundDTO = BoardOutboundDTO.builder()
                 .boardId(boards.getBoardId())
                 .userId(user.getUserId())
@@ -99,6 +99,7 @@ public class BoardServiceImpl implements BoardService {
                 .content(boards.getContent())
                 .createdAt(boards.getCreatedAt())
                 .updatedAt(boards.getUpdatedAt())
+                .replyCount(boards.getReplyCount())
                 .isPrivate(boards.isPrivate())
                 .build();
         return boardOutboundDTO;
@@ -107,7 +108,7 @@ public class BoardServiceImpl implements BoardService {
     private Boards authCheck(BoardInboundDTO boardInboundDTO) {
         Boards boards = boardRepository.findById(boardInboundDTO.getBoardId()).orElseThrow(() -> new MyPortFolioException(ErrorCode.BOARD_NOTFOUND));
         Users user = userRepository.findById(boardInboundDTO.getUserId()).orElseThrow(() -> new MyPortFolioException(ErrorCode.USER_NOTFOUND));
-        if(!boardInboundDTO.getBoardId().equals(boards.getBoardId()) || !UserRole.ROLE_ADMIN.equals(user.getRole())) {
+        if(!boardInboundDTO.getUserId().equals(boards.getUsers().getUserId()) && !UserRole.ROLE_ADMIN.equals(user.getRole())) {
             throw new MyPortFolioException(ErrorCode.NOT_AUTH);
         }
         return boards;

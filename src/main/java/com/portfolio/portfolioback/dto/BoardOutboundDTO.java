@@ -18,5 +18,6 @@ public class BoardOutboundDTO {
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private int replyCount;
     private boolean isPrivate;
 }

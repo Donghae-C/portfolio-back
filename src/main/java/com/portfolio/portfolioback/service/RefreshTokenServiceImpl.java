@@ -83,6 +83,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService{
         log.info("2");
         //2. db에 저장되어 있는 토큰인지 확인
         String hashedToken = TokenHashUtil.sha256(refreshToken);
+        log.info("hashedToken: {}", hashedToken);
         RefreshTokens dbRefreshToken = refreshTokenRepository.findByToken(hashedToken).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "DB에 저장된 토큰이 아님"));
         log.info("3");
         //3. 만료확인
@@ -113,10 +114,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService{
         String accessToken = jWTUtil.createAccessJwt(user, user.getRole().name(), 1000 * 60 * 10L);
         String refreshToken = RefreshTokenGenerator.generate();
         String hashedRefreshToken = TokenHashUtil.sha256(refreshToken);
-        saveToken(user, accessToken);
+        saveToken(user, hashedRefreshToken);
 
         Map<String, String> tokens = new HashMap<>();
-        tokens.put("refreshToken", hashedRefreshToken);
+        tokens.put("refreshToken", refreshToken);
         tokens.put("accessToken", accessToken);
 
         loginCodeRepository.delete(codes);

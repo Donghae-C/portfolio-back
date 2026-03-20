@@ -52,7 +52,7 @@ public class ReplyServiceImpl implements ReplyService {
     public void deleteReply(ReplyInboundDTO replyInboundDTO) {
         Replys replys = replyRepository.findById(replyInboundDTO.getReplyId()).orElseThrow(() -> new MyPortFolioException(ErrorCode.REPLY_NOTFOUND));
         Users user = userRepository.findById(replyInboundDTO.getUserId()).orElseThrow(() -> new MyPortFolioException(ErrorCode.USER_NOTFOUND));
-        if(!replyInboundDTO.getUserId().equals(replys.getUser().getUserId()) || !UserRole.ROLE_ADMIN.equals(user.getRole())) {
+        if(!replyInboundDTO.getUserId().equals(replys.getUser().getUserId()) && !UserRole.ROLE_ADMIN.equals(user.getRole())) {
             throw new MyPortFolioException(ErrorCode.NOT_AUTH);
         }
         try {
