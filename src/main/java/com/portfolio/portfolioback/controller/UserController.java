@@ -40,7 +40,7 @@ public class UserController {
 
     @GetMapping("/auth/reissue")
     public ResponseEntity<?> reissueToken(HttpServletRequest request){
-        log.info("reissueToken");
+        log.info("reissueToken Get");
         String refreshToken = CookieUtil.getCookieValue(request, "refreshToken");
         log.info("refreshToken: {}", refreshToken);
         String accessToken = refreshTokenService.reissueAccessToken(refreshToken);
@@ -50,7 +50,7 @@ public class UserController {
 
     @PostMapping("/auth/reissue")
     public ResponseEntity<?> reissueTokenByCookie(HttpServletRequest request, HttpServletResponse response){
-        log.info("reissueToken");
+        log.info("reissueToken Post");
         String refreshToken = CookieUtil.getCookieValue(request, "refreshToken");
         log.info("refreshToken: {}", refreshToken);
         refreshTokenService.reissueAccessTokenByCookie(refreshToken, response);
