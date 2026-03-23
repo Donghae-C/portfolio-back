@@ -4,6 +4,7 @@ import com.portfolio.portfolioback.common.enumtype.UserRole;
 import com.portfolio.portfolioback.common.security.CustomUserDetails;
 import com.portfolio.portfolioback.common.util.CookieUtil;
 import com.portfolio.portfolioback.dto.LoginCode;
+import com.portfolio.portfolioback.service.BusService;
 import com.portfolio.portfolioback.service.RefreshTokenService;
 import com.portfolio.portfolioback.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +26,7 @@ import java.util.Map;
 public class UserController {
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
+    private final BusService busService;
 
     @GetMapping("/auth/me")
     public ResponseEntity<?> getMe(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -74,5 +76,10 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(tokens);
     }
 
-
+    @GetMapping("/bus")
+    public ResponseEntity<?> getBus(){
+        log.info("getBus");
+        Map<String, String> busInfo = busService.getBusInfo();
+        return ResponseEntity.status(HttpStatus.OK).body(busInfo);
+    }
 }
