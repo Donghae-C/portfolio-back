@@ -1,0 +1,20 @@
+services:
+  backend:
+    # 현재 디렉토리의 Dockerfile로 이미지 빌드함
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # 컨테이너 이름 고정
+    container_name: portfolio-backend
+
+    # 포트 매핑
+    ports:
+      - "8080:8080"
+
+    # .env 파일에 있는 값을 컨테이너 환경변수로 주입
+    env_file:
+      - .env
+
+    # 재시작 정책
+    restart: always

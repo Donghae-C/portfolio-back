@@ -1,29 +1,82 @@
-name: Deploy to EC2
+name: Deploy Spring Boot to EC2
 
 on:
   push:
     branches:
-      - main  # main에 push/merge되면 실행됨
+      - main # main 브랜치에 push 되면 자동 배포됨
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # GitHub가 제공하는 리눅스 러너에서 실행됨
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4 # 저장소 코드를 러너로 가져옴
 
-      - name: Connect to EC2 and Deploy
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_PORT }}
-          script: |
-            cd ~/backend-deploy
+          distribution: temurin # Eclipse Temurin JDK 사용
+          java-version: 17
+          cache: gradle # Gradle 캐시 사용으로 빌드 속도 개선
 
-            git pull origin main
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew # gradlew 실행 권한 부여
 
-            docker compose down
+      - name: Build with Gradle
+        run: ./gradlew clean bootJar -x test # 테스트 제외하고 jar 빌드
+        # 테스트까지 돌리고 싶으면 -x test 제거하면 됨
+
+      - name: Rename jar for Docker copy
+        run: cp build/libs/*.jar app.jar # Dockerfile에서 쓰기 쉽게 이름 고정
+
+      - name: Create SSH key file
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+        # GitHub Secrets에 저장된 개인키를 파일로 생성함
+
+      - name: Add EC2 to known_hosts
+        run: |
+          ssh-keyscan -p ${{ secrets.EC2_PORT }} ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+        # 최초 접속시 host verification 문제 방지용
+
+      - name: Prepare remote directory
+        run: |
+          ssh -i ~/.ssh/ec2_key -p ${{ secrets.EC2_PORT }} ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+            mkdir -p ~/backend-deploy
+          "
+        # EC2에 배포 폴더 생성
+
+      - name: Upload deployment files
+        run: |
+          scp -i ~/.ssh/ec2_key -P ${{ secrets.EC2_PORT }} \
+            Dockerfile compose.yaml app.jar \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/backend-deploy/
+        # Dockerfile, compose.yaml, 빌드된 jar를 EC2로 전송
+
+      - name: Create .env on EC2
+        run: |
+          ssh -i ~/.ssh/ec2_key -p ${{ secrets.EC2_PORT }} ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "cat > ~/backend-deploy/.env << 'EOF'
+          DB_URL=${{ secrets.DB_URL }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          OAUTH_CLIENT_ID=${{ secrets.OAUTH_CLIENT_ID }}
+          OAUTH_CLIENT_SECRET=${{ secrets.OAUTH_CLIENT_SECRET }}
+          OAUTH_CLIENT_SCOPE=${{secrets.OAUTH_CLIENT_SCOPE}}
+          FRONT_URL=${{ secrets.FRONT_URL }}
+          BACK_URL=${{ secrets.BACK_URL }}
+          EOF"
+        # GitHub Secrets 값을 이용해서 EC2에 .env 파일 생성
+        # 주의: 여기에 필요한 환경변수는 네 프로젝트에 맞게 더 추가해야 함
+
+      - name: Deploy on EC2
+        run: |
+          ssh -i ~/.ssh/ec2_key -p ${{ secrets.EC2_PORT }} ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+            cd ~/backend-deploy &&
+            docker compose down &&
             docker compose up -d --build
+          "
+        # 기존 컨테이너 내리고 새 이미지로 다시 올림
