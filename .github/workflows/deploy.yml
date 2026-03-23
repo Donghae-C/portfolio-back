@@ -68,6 +68,8 @@ jobs:
           OAUTH_CLIENT_SCOPE=${{secrets.OAUTH_CLIENT_SCOPE}}
           FRONT_URL=${{ secrets.FRONT_URL }}
           BACK_URL=${{ secrets.BACK_URL }}
+          BUS_API_URL=${{secrets.BUS_API_URL}}
+          BUS_OPENAPI_KEY=${{secrets.BUS_OPENAPI_KEY}}
           EOF"
         # GitHub Secrets 값을 이용해서 EC2에 .env 파일 생성
         # 주의: 여기에 필요한 환경변수는 네 프로젝트에 맞게 더 추가해야 함
