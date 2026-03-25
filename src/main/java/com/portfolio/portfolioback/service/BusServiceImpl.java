@@ -2,14 +2,15 @@ package com.portfolio.portfolioback.service;
 
 import com.portfolio.portfolioback.common.exception.ErrorCode;
 import com.portfolio.portfolioback.common.exception.MyPortFolioException;
+import com.portfolio.portfolioback.dto.BusListResponse;
 import com.portfolio.portfolioback.dto.BusResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -18,8 +19,6 @@ public class BusServiceImpl implements BusService {
 
     private final String API_URL;
     private final String OPENAPI_KEY;
-    private final String STATION_CODE = "206000040";
-    private final String BUS_CODE = "234000026";
     private final String STA_ORDER = "19";
     private final String FORMAT = "json";
     private final RestClient restClient;
@@ -31,7 +30,7 @@ public class BusServiceImpl implements BusService {
     }
 
     @Override
-    public Map<String, String> getBusInfo() {
+    public Map<String, String> getBusInfo(String stationCode, String busCode) {
         Map<String, String> busInfo = new HashMap<>();
         BusResponse data = restClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -40,8 +39,8 @@ public class BusServiceImpl implements BusService {
                         .path(API_URL)
                         .queryParam("format", FORMAT)
                         .queryParam("serviceKey", OPENAPI_KEY)
-                        .queryParam("stationId", STATION_CODE)
-                        .queryParam("routeId", BUS_CODE)
+                        .queryParam("stationId", stationCode)
+                        .queryParam("routeId", busCode)
                         .queryParam("staOrder", STA_ORDER)
                         .build())
                 .retrieve()
@@ -51,10 +50,31 @@ public class BusServiceImpl implements BusService {
         }
         int minute = data.getResponse().getMsgBody().getBusArrivalItem().getPredictTime1();
         int minute2 =  data.getResponse().getMsgBody().getBusArrivalItem().getPredictTime2();
-        String message = "720번 버스 오리역 도착까지 " + minute + "분 남음";
-        String message2 = "720번 버스 오리역 도착까지 " + minute2 + "분 남음";
+        String busName = data.getResponse().getMsgBody().getBusArrivalItem().getRouteName();
+        String message = busName + "번 버스 도착까지 " + minute + "분 남음";
+        String message2 = busName + "번 버스 도착까지 " + minute2 + "분 남음";
         busInfo.put("message", message);
         busInfo.put("message2", message2);
+        return busInfo;
+    }
+
+    @Override
+    public Map<String, Long> getBusList(String stationCode) {
+        BusListResponse busListResponse = restClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("http")
+                        .host("apis.data.go.kr")
+                        .path("/6410000/busarrivalservice/v2/getBusArrivalListv2")
+                        .queryParam("format", FORMAT)
+                        .queryParam("serviceKey", OPENAPI_KEY)
+                        .queryParam("stationId", stationCode)
+                        .build())
+                .retrieve()
+                .body(BusListResponse.class);
+        List<BusListResponse.BusArrivalItem> busList = busListResponse.getResponse().getMsgBody().getBusArrivalList();
+        Map<String, Long> busInfo = new HashMap<>();
+        busList.forEach(n -> busInfo.put(n.getRouteName(), n.getRouteId()));
+        log.info("getBusList : {}", busInfo);
         return busInfo;
     }
 }
