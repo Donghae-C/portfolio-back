@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -77,9 +78,16 @@ public class UserController {
     }
 
     @GetMapping("/bus")
-    public ResponseEntity<?> getBus(){
-        log.info("getBus");
-        Map<String, String> busInfo = busService.getBusInfo();
+    public ResponseEntity<?> getBus(@RequestParam String stationCode, String busCode){
+        log.info("getBus = {}, {}", stationCode, busCode);
+        Map<String, String> busInfo = busService.getBusInfo(stationCode, busCode);
         return ResponseEntity.status(HttpStatus.OK).body(busInfo);
+    }
+
+    @GetMapping("/bus/list")
+    public ResponseEntity<?> getBusList(@RequestParam String stationCode){
+        log.info("getBusList");
+        Map<String, Long> busList = busService.getBusList(stationCode);
+        return ResponseEntity.status(HttpStatus.OK).body(busList);
     }
 }
