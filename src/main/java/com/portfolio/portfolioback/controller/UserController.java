@@ -77,6 +77,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(tokens);
     }
 
+    @GetMapping("/auth/guest")
+    public ResponseEntity<?> getGuest(){
+        log.info("getGuest");
+        Map<String, String> map = refreshTokenService.issueGuestToken();
+        return ResponseEntity.status(HttpStatus.OK).body(map);
+    }
+
     @GetMapping("/bus")
     public ResponseEntity<?> getBus(@RequestParam String stationCode, String busCode){
         log.info("getBus = {}, {}", stationCode, busCode);

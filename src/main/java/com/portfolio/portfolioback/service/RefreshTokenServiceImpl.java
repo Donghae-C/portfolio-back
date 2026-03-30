@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -133,5 +134,32 @@ public class RefreshTokenServiceImpl implements RefreshTokenService{
         } catch (Exception e) {
             throw new MyPortFolioException(ErrorCode.DB_ERROR);
         }
+    }
+
+    @Override
+    public Map<String, String> issueGuestToken() {
+        String preNickName = UUID.randomUUID().toString().substring(0, 6);
+        String userName = "게스트-" + preNickName;
+        String rawEmail = UUID.randomUUID().toString();
+        String email = rawEmail.replace("-", "") + "@example.com";
+        String provider = "dh";
+        String providerId = "guest";
+
+        Users user = Users.builder()
+                .userName(userName)
+                .email(email)
+                .providerId(providerId)
+                .provider(provider)
+                .role(UserRole.ROLE_USER)
+                .build();
+        userRepository.save(user);
+
+        String accessJwt = jWTUtil.createAccessJwt(user, UserRole.ROLE_USER.name(), 1000 * 60 * 30L);
+
+        Map<String, String> token = new HashMap<>();
+
+        token.put("accessToken", accessJwt);
+
+        return token;
     }
 }
