@@ -13,4 +13,5 @@ public interface RefreshTokenService {
     void logout(Long userId);
     void saveLoginCode(String code, Long userId);
     Map<String, String> issueTokensByCode(String code);
+    Map<String, String> issueGuestToken();
 }
