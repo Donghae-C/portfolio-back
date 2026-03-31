@@ -1,20 +1,28 @@
 services:
   backend:
-    # 현재 디렉토리의 Dockerfile로 이미지 빌드함
+    # 현재 폴더 기준으로 이미지 빌드
     build:
       context: .
       dockerfile: Dockerfile
 
-    # 컨테이너 이름 고정
+    # 컨테이너 이름
     container_name: portfolio-backend
 
     # 포트 매핑
     ports:
       - "8080:8080"
 
-    # .env 파일에 있는 값을 컨테이너 환경변수로 주입
+    # 환경변수 파일 주입
     env_file:
       - .env
 
-    # 재시작 정책
+    # 컨테이너 환경변수 설정
+    environment:
+      # 컨테이너 OS 시간대를 KST로 맞춤
+      TZ: Asia/Seoul
+
+      # JVM 시간대도 KST로 고정
+      JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Seoul
+
+    # 자동 재시작
     restart: always
