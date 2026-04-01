@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -55,22 +56,27 @@ public class SandboxServiceImpl implements SandboxService {
     }
 
     @Override
-    public SandboxResponseDTO runCode(String code) {
+    public SandboxResponseDTO runCode(String code) throws Exception {
+        // 호스트와 컨테이너가 동일하게 공유하는 절대 경로여야 함
+        Path baseDir = Paths.get("/sandbox");
+        Files.createDirectories(baseDir);
+
         Path tempDir = null;
         String containerName = "java-runner-" + UUID.randomUUID();
 
         try {
-            // 임시 디렉토리 생성
-            tempDir = Files.createTempDirectory("java-run");
+            // 공유 디렉터리 아래에 실행용 임시 폴더 생성
+            tempDir = Files.createTempDirectory(baseDir, "java-run-");
 
             // Main.java 파일 경로 생성
             Path file = tempDir.resolve("Main.java");
 
-            // Docker 볼륨 마운트를 위해 경로를 / 형식으로 변경
-            String path = tempDir.toAbsolutePath().toString().replace("\\", "/");
-
-            // 전달받은 자바 코드를 파일에 저장
+            // 전달받은 자바 코드 저장
             Files.writeString(file, code);
+
+            // docker run -v 의 왼쪽 경로는
+            // 호스트에서도 실제로 존재하는 절대경로여야 함
+            String path = tempDir.toAbsolutePath().toString();
 
             ProcessBuilder pb = new ProcessBuilder(
                     "docker", "run", "--rm",
@@ -84,14 +90,14 @@ public class SandboxServiceImpl implements SandboxService {
                     "javac /app/Main.java && java -cp /app Main"
             );
 
-            // 표준 에러도 표준 출력으로 합침
+            // 표준 에러를 표준 출력으로 합침
             pb.redirectErrorStream(true);
 
             Process process = pb.start();
 
             StringBuilder output = new StringBuilder();
 
-            // 출력 읽기 스레드
+            // 자식 프로세스 출력 읽기
             Thread outputThread = new Thread(() -> {
                 try (BufferedReader reader = new BufferedReader(
                         new InputStreamReader(process.getInputStream())
@@ -107,14 +113,14 @@ public class SandboxServiceImpl implements SandboxService {
 
             outputThread.start();
 
-            // 3초 타임아웃
+            // 최대 3초까지 대기
             boolean finished = process.waitFor(3, TimeUnit.SECONDS);
 
             if (!finished) {
-                // docker run 프로세스 강제 종료
+                // docker run 프로세스 종료
                 process.destroyForcibly();
 
-                // 실제 컨테이너도 제거
+                // 혹시 실제 컨테이너가 살아있으면 제거
                 killAndRemoveContainer(containerName);
 
                 outputThread.join(500);
@@ -126,14 +132,12 @@ public class SandboxServiceImpl implements SandboxService {
                         .build();
             }
 
-            // 출력 스레드 종료 대기
+            // 출력 읽기 스레드 종료 대기
             outputThread.join();
 
-            // 프로세스 종료 코드 확인
             int exitCode = process.exitValue();
             String outputText = output.toString();
 
-            // 종료코드가 0이면 정상 실행 성공
             if (exitCode == 0) {
                 return SandboxResponseDTO.builder()
                         .status(SandboxStatus.SUCCESS)
@@ -142,7 +146,7 @@ public class SandboxServiceImpl implements SandboxService {
                         .build();
             }
 
-            // 컴파일 에러인지 런타임 에러인지 단순 분기
+            // javac 컴파일 에러 문자열 포함 시 컴파일 에러로 처리
             if (outputText.contains("error:")) {
                 return SandboxResponseDTO.builder()
                         .status(SandboxStatus.COMPILE_ERROR)
@@ -163,12 +167,11 @@ public class SandboxServiceImpl implements SandboxService {
                     .result(null)
                     .error("서버 내부 오류: " + e.getMessage())
                     .build();
-
         } finally {
-            // 혹시 남은 컨테이너가 있으면 제거
+            // 남아있는 실행 컨테이너 정리
             killAndRemoveContainer(containerName);
 
-            // 임시 디렉토리 삭제
+            // 실행 폴더 정리
             deleteTempDirectory(tempDir);
         }
     }
