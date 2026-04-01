@@ -1,33 +1,26 @@
 services:
   backend:
-    # 현재 폴더 기준으로 이미지 빌드
     build:
       context: .
       dockerfile: Dockerfile
 
-    # 컨테이너 이름
     container_name: portfolio-backend
 
-    # 포트 매핑
     ports:
       - "8080:8080"
 
-    # 환경변수 파일 주입
     env_file:
       - .env
 
-    # 컨테이너 환경변수 설정
     environment:
-      # 컨테이너 OS 시간대를 KST로 맞춤
       TZ: Asia/Seoul
-
-      # JVM 시간대도 KST로 고정
       JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Seoul
 
-    # 호스트의 Docker 소켓을 컨테이너 내부에 마운트
-    # -> 컨테이너 안의 docker CLI가 호스트 Docker daemon을 사용하게 됨
     volumes:
+      # 백엔드 컨테이너가 호스트 Docker 사용
       - /var/run/docker.sock:/var/run/docker.sock
 
-    # 자동 재시작
+      # 호스트와 백엔드 컨테이너가 sandbox 작업 디렉터리를 공유
+      - /sandbox:/sandbox
+
     restart: always
