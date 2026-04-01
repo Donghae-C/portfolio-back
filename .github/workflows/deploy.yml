@@ -70,6 +70,10 @@ jobs:
           BACK_URL=${{ secrets.BACK_URL }}
           BUS_API_URL=${{secrets.BUS_API_URL}}
           BUS_OPENAPI_KEY=${{secrets.BUS_OPENAPI_KEY}}
+          S3_BUCKET=${{secrets.S3_BUCKET}}
+          S3_REGION=${{secrets.S3_REGION}}
+          AWS_ACCESS_KEY=${{secrets.AWS_ACCESS_KEY}}
+          AWS_SECRET_KEY=${{secrets.AWS_SECRET_KEY}}
           EOF"
         # GitHub Secrets 값을 이용해서 EC2에 .env 파일 생성
         # 주의: 여기에 필요한 환경변수는 네 프로젝트에 맞게 더 추가해야 함

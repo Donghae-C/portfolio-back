@@ -1,6 +1,7 @@
 package com.portfolio.portfolioback.controller;
 
 import com.portfolio.portfolioback.common.security.CustomUserDetails;
+import com.portfolio.portfolioback.common.util.S3Uploader;
 import com.portfolio.portfolioback.dto.BoardInboundDTO;
 import com.portfolio.portfolioback.dto.BoardOutboundDTO;
 import com.portfolio.portfolioback.dto.ReplyInboundDTO;
@@ -14,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +29,7 @@ import java.util.Map;
 public class BoardController {
     private final BoardService boardService;
     private final ReplyService replyService;
+    private final S3Uploader s3Uploader;
 
     @GetMapping
     public ResponseEntity<?> getBoard(@RequestParam int page, @RequestParam int size){
@@ -96,5 +100,12 @@ public class BoardController {
         ReplyInboundDTO replyInboundDTO = ReplyInboundDTO.builder().replyId(replyId).userId(userId).build();
         replyService.deleteReply(replyInboundDTO);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/upload/image")
+    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
+        log.info("Upload Image");
+        String url = s3Uploader.uploadFile(file, "image");
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("url", url));
     }
 }
