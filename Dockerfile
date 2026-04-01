@@ -4,10 +4,12 @@ FROM eclipse-temurin:17-jre
 # 컨테이너 내부 작업 경로 설정
 WORKDIR /app
 
-# timezone 관련 패키지 설치 및 KST로 고정
-# - tzdata가 있어야 Asia/Seoul 시간대 정보를 제대로 인식할 수 있음
-# - /etc/localtime, /etc/timezone까지 맞춰두면 OS 레벨 date도 KST로 나옴
-RUN apt-get update && apt-get install -y tzdata \
+# timezone 관련 패키지 + docker cli 설치
+# - tzdata: Asia/Seoul 시간대 적용
+# - docker.io: 컨테이너 안에서 docker 명령 사용
+RUN apt-get update && apt-get install -y \
+    tzdata \
+    docker.io \
     && ln -snf /usr/share/zoneinfo/Asia/Seoul /etc/localtime \
     && echo "Asia/Seoul" > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
@@ -16,8 +18,6 @@ RUN apt-get update && apt-get install -y tzdata \
 COPY app.jar app.jar
 
 # 컨테이너 기본 환경변수 설정
-# - TZ: OS 레벨 시간대
-# - JAVA_TOOL_OPTIONS: JVM 시간대
 ENV TZ=Asia/Seoul
 ENV JAVA_TOOL_OPTIONS="-Duser.timezone=Asia/Seoul"
 
