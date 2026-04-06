@@ -31,7 +31,6 @@ public class UserController {
 
     @GetMapping("/auth/me")
     public ResponseEntity<?> getMe(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        log.info("user: {}", userDetails.getUser().getUserId());
         Long userId = userDetails.getUser().getUserId();
         UserRole role = userDetails.getUser().getRole();
         String userName = userDetails.getUser().getUserName();
@@ -43,9 +42,7 @@ public class UserController {
 
     @GetMapping("/auth/reissue")
     public ResponseEntity<?> reissueToken(HttpServletRequest request){
-        log.info("reissueToken Get");
         String refreshToken = CookieUtil.getCookieValue(request, "refreshToken");
-        log.info("refreshToken: {}", refreshToken);
         String accessToken = refreshTokenService.reissueAccessToken(refreshToken);
         Map<String, String> responseMap = Map.of("accessToken", accessToken);
         return ResponseEntity.status(HttpStatus.OK).body(responseMap);
@@ -53,9 +50,7 @@ public class UserController {
 
     @PostMapping("/auth/reissue")
     public ResponseEntity<?> reissueTokenByCookie(HttpServletRequest request, HttpServletResponse response){
-        log.info("reissueToken Post");
         String refreshToken = CookieUtil.getCookieValue(request, "refreshToken");
-        log.info("refreshToken: {}", refreshToken);
         refreshTokenService.reissueAccessTokenByCookie(refreshToken, response);
         Map<String, String> responseMap = Map.of("message", "쿠키로 재발급 성공");
         return ResponseEntity.status(HttpStatus.OK).body(responseMap);
@@ -63,7 +58,6 @@ public class UserController {
 
     @PostMapping("/auth/logout")
     public ResponseEntity<?> logout(@AuthenticationPrincipal CustomUserDetails userDetails){
-        log.info("logout");
         Long userId = userDetails.getUser().getUserId();
         refreshTokenService.logout(userId);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -71,29 +65,24 @@ public class UserController {
 
     @PostMapping("/auth/exchange")
     public ResponseEntity<?> exchangeToken(@RequestBody LoginCode code){
-        log.info("exchangeToken");
-        log.info("code: {}", code.getCode());
         Map<String, String> tokens = refreshTokenService.issueTokensByCode(code.getCode());
         return ResponseEntity.status(HttpStatus.OK).body(tokens);
     }
 
     @GetMapping("/auth/guest")
     public ResponseEntity<?> getGuest(){
-        log.info("getGuest");
         Map<String, String> map = refreshTokenService.issueGuestToken();
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 
     @GetMapping("/bus")
     public ResponseEntity<?> getBus(@RequestParam String stationCode, String busCode){
-        log.info("getBus = {}, {}", stationCode, busCode);
         Map<String, String> busInfo = busService.getBusInfo(stationCode, busCode);
         return ResponseEntity.status(HttpStatus.OK).body(busInfo);
     }
 
     @GetMapping("/bus/list")
     public ResponseEntity<?> getBusList(@RequestParam String stationCode){
-        log.info("getBusList");
         Map<String, Long> busList = busService.getBusList(stationCode);
         return ResponseEntity.status(HttpStatus.OK).body(busList);
     }

@@ -29,33 +29,28 @@ public class JWTUtil {
 
     // userId 검증
     public Long getUserId(String token) {
-        log.info("getUserId(String token) called");
+
         Long result = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", Long.class);
-        log.info("getUserId(String token) result = {}", result);
+
         return result;
     }
 
     // username 검증
     public String getUsername(String token) {
-        log.info("getUsername(String token) called");
+
         String result = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userName", String.class);
-        log.info("getUsername(String token) result = {}", result);
         return result;
     }
 
     // role 검증
     public String getRole(String token) {
-        log.info("getRole(String token) called");
         String result = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role", String.class);
-        log.info("getRole(String token) result = {} " , result);
         return result;
     }
 
     // expired 검증
     public Boolean isExpired(String token) {
-        log.info("isExpired(String token) call");
         boolean result = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
-        log.info("isExpired(String token) result  = {}", result);
         return result;
     }
 
@@ -63,7 +58,6 @@ public class JWTUtil {
     // claim은 payload에 해당하는 정보
     //public String createJwt(String username, String role, Long expiredMs) {
     public String createAccessJwt(Users user, String role, Long expiredMs) {
-        log.info("createJwt  call");
         return Jwts.builder()
                 .claim("userId", user.getUserId()) // userId (PK)
                 .claim("role", role) // admin or user

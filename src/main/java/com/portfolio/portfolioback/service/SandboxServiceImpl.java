@@ -51,7 +51,6 @@ public class SandboxServiceImpl implements SandboxService {
 
         process.waitFor();
 
-        log.info("result: {}" , result.toString());
         return result.toString();
     }
 

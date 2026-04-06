@@ -52,7 +52,6 @@ public class SecurityConfig {
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        log.info("bCryptPasswordEncoder called...");
         return new BCryptPasswordEncoder();
     }
 
