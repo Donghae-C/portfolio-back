@@ -53,6 +53,14 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
          */
+
+        String ip = request.getRemoteAddr();
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+
+        String ua = request.getHeader("User-Agent");
+        System.out.println("ip:" + ip + " uri:" + uri + " method:" + method + " ua:" + ua);
+
         String token = null;
         // 2. 쿠키 바구니에서 "Authorization" 찾기
         Cookie[] cookies = request.getCookies();
