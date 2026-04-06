@@ -64,7 +64,6 @@ public class JWTFilter extends OncePerRequestFilter {
         String token = null;
         // 2. 쿠키 바구니에서 "Authorization" 찾기
         Cookie[] cookies = request.getCookies();
-        System.out.println(cookies);
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 // 쿠키 이름이 "Authorization"인 것을 찾음
@@ -77,11 +76,9 @@ public class JWTFilter extends OncePerRequestFilter {
 
 
         if (token == null) {
-            System.out.println("token null");
             filterChain.doFilter(request, response);
             return;
         }
-        System.out.println("token = " + token);
         System.out.println("authorization now");
 
         if (jwtUtil.isExpired(token)) {
@@ -111,7 +108,6 @@ public class JWTFilter extends OncePerRequestFilter {
                 new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
         // 세션에 사용자 등록 - 세션이 만들어짐.
         SecurityContextHolder.getContext().setAuthentication(authToken);
-        System.out.println("authToken = " + authToken);
         filterChain.doFilter(request, response);
     }
 }

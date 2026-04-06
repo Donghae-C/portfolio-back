@@ -74,7 +74,6 @@ public class BusServiceImpl implements BusService {
         List<BusListResponse.BusArrivalItem> busList = busListResponse.getResponse().getMsgBody().getBusArrivalList();
         Map<String, Long> busInfo = new HashMap<>();
         busList.forEach(n -> busInfo.put(n.getRouteName(), n.getRouteId()));
-        log.info("getBusList : {}", busInfo);
         return busInfo;
     }
 }

@@ -48,10 +48,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService{
 
     @Override
     public String reissueAccessToken(String refreshToken) {
-
-
         String accessJwt = createAccessToken(refreshToken);
-        log.info("AccessToken: {}", accessJwt);
         return accessJwt;
     }
 
@@ -65,8 +62,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService{
         cookieAccessToken.setHttpOnly(true);
         cookieAccessToken.setSecure(false);//일단 로컬환경용 테스트
         cookieAccessToken.setMaxAge(60 * 10);
-
-        log.info("cookieAccessToken: {}", accessJwt);
         response.addCookie(cookieAccessToken);
     }
 
@@ -76,28 +71,22 @@ public class RefreshTokenServiceImpl implements RefreshTokenService{
     }
 
     private String createAccessToken(String refreshToken){
-        log.info("토큰 재발급 중");
         //1. 토큰자체가 있는지 확인
         if(refreshToken==null||refreshToken.isBlank()){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 없음");
         }
-        log.info("2");
         //2. db에 저장되어 있는 토큰인지 확인
         String hashedToken = TokenHashUtil.sha256(refreshToken);
-        log.info("hashedToken: {}", hashedToken);
         RefreshTokens dbRefreshToken = refreshTokenRepository.findByToken(hashedToken).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "DB에 저장된 토큰이 아님"));
-        log.info("3");
         //3. 만료확인
         if(dbRefreshToken.getExpireTime().isBefore(LocalDateTime.now())){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "리프레시 토큰 만료");
         }
 
-        log.info("테스트중...");
 
         //4. 토큰엔티티에서 User추출
         Users user = dbRefreshToken.getUser();
         UserRole role = user.getRole();
-        log.info("user: {}", user);
 
         String accessJwt = jWTUtil.createAccessJwt(user, role.toString(), 1000 * 60 * 10L);
 

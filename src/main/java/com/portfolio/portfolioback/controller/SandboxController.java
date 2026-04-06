@@ -27,7 +27,6 @@ public class SandboxController {
 
     @PostMapping
     public SandboxResponseDTO sandbox(@RequestBody CodeRequest codeRequest) throws Exception {
-        log.info("sandbox code: {}", codeRequest.getCode());
         return sandboxService.runCode(codeRequest.getCode());
     }
 }

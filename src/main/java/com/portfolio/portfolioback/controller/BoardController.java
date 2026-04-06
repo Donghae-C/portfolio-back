@@ -32,25 +32,24 @@ public class BoardController {
 
     @GetMapping
     public ResponseEntity<?> getBoard(@RequestParam int page, @RequestParam int size){
-        log.info("Get Board");
-        log.info("Page: {}, Size: {}", page, size);
+
         Page<BoardOutboundDTO> allBoards = boardService.findAllBoards(page, size);
-        log.info("All Boards: {}", allBoards.getContent());
+
         return ResponseEntity.status(HttpStatus.OK).body(allBoards);
     }
 
     @PostMapping
     public ResponseEntity<?> writeBoard(@RequestBody BoardInboundDTO boardInboundDTO, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        log.info("Board Write");
+
         boardInboundDTO.setUserId(customUserDetails.getUser().getUserId());
-        log.info("BoardDTO = {}",  boardInboundDTO);
+
         boardService.writeBoard(boardInboundDTO);
         return ResponseEntity.status(HttpStatus.OK).body("작성 완료");
     }
 
     @GetMapping("/{boardId}")
     public ResponseEntity<?> getBoardById(@PathVariable Long boardId){
-        log.info("Get Board by Id, {}", boardId);
+
         BoardOutboundDTO board = boardService.findBoardById(boardId);
         return ResponseEntity.status(HttpStatus.OK).body(board);
     }
@@ -59,7 +58,6 @@ public class BoardController {
     public ResponseEntity<?> updateBoard(@PathVariable Long boardId,
                                          @RequestBody BoardInboundDTO boardInboundDTO,
                                          @AuthenticationPrincipal CustomUserDetails customUserDetails){
-        log.info("Update Board");
         Long userId = customUserDetails.getUser().getUserId();
         boardInboundDTO.setUserId(userId);
         boardService.updateBoard(boardInboundDTO);
@@ -69,7 +67,6 @@ public class BoardController {
     @DeleteMapping("/{boardId}")
     public ResponseEntity<?> deleteBoard(@PathVariable Long boardId,
                                          @AuthenticationPrincipal CustomUserDetails customUserDetails){
-        log.info("Delete Board");
         Long userId = customUserDetails.getUser().getUserId();
         BoardInboundDTO board = BoardInboundDTO.builder().boardId(boardId).userId(userId).build();
         boardService.deleteBoard(board);
@@ -78,23 +75,23 @@ public class BoardController {
 
     @GetMapping("/reply/{boardId}")
     public ResponseEntity<?> getBoardReply(@PathVariable Long boardId){
-        log.info("Get Board Reply");
+
         List<ReplyOutboundDTO> replyList = replyService.getReplyList(boardId);
         return ResponseEntity.status(HttpStatus.OK).body(replyList);
     }
 
     @PostMapping("/reply")
     public ResponseEntity<?> writeBoardReply(@RequestBody ReplyInboundDTO replyInboundDTO, @AuthenticationPrincipal CustomUserDetails customUserDetails){
-        log.info("Write Board Reply");
+
         replyInboundDTO.setUserId(customUserDetails.getUser().getUserId());
-        log.info("ReplyInboundDTO = {}",  replyInboundDTO);
+
         replyService.writeReply(replyInboundDTO);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @DeleteMapping("/reply/{replyId}")
     public ResponseEntity<?> deleteBoardReply(@PathVariable Long replyId, @AuthenticationPrincipal CustomUserDetails customUserDetails){
-        log.info("Delete Board Reply");
+
         Long userId = customUserDetails.getUser().getUserId();
         ReplyInboundDTO replyInboundDTO = ReplyInboundDTO.builder().replyId(replyId).userId(userId).build();
         replyService.deleteReply(replyInboundDTO);
@@ -103,7 +100,7 @@ public class BoardController {
 
     @PostMapping("/upload/image")
     public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
-        log.info("Upload Image");
+
         String url = s3Uploader.uploadFile(file, "image");
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("url", url));
     }
