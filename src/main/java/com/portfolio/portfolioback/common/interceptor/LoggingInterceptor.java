@@ -16,9 +16,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
         String method = request.getMethod();
 
         String ua = request.getHeader("User-Agent");
-
-        log.info("접속 로그 >> {} {} {}", ip, method, uri);
-        log.info("UA >> {}", ua);
+        System.out.println("ip:" + ip + " uri:" + uri + " method:" + method + " ua:" + ua);
         return true;
     }
 }
