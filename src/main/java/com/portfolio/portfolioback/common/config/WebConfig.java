@@ -1,6 +1,5 @@
 package com.portfolio.portfolioback.common.config;
 
-import com.portfolio.portfolioback.common.interceptor.LoggingInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
