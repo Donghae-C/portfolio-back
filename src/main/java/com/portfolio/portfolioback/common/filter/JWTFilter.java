@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 public class JWTFilter extends OncePerRequestFilter {
 
@@ -59,7 +60,7 @@ public class JWTFilter extends OncePerRequestFilter {
         String method = request.getMethod();
 
         String ua = request.getHeader("User-Agent");
-        System.out.println("ip:" + ip + " uri:" + uri + " method:" + method + " ua:" + ua);
+        System.out.println("ip:" + ip + " uri:" + uri + " method:" + method + " ua:" + ua + " time:" + LocalDateTime.now());
 
         String token = null;
         // 2. 쿠키 바구니에서 "Authorization" 찾기
