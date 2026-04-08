@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -72,7 +73,12 @@ public class SecurityConfig {
         http.sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        http.authorizeHttpRequests(auth -> auth.requestMatchers("/api/user/auth/me", "/api/board/**").hasAnyRole("USER", "ADMIN")
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/user/auth/me").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/board/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/board/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/board/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/board/**").hasAnyRole("USER", "ADMIN")
                 .anyRequest().permitAll());
 
         // 모두 허용 (임시)
